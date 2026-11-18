@@ -68,10 +68,10 @@ export default function VisaoGeralPageClient() {
   const avg = products && products.length ? products.reduce((s, p) => s + p.price, 0) / products.length : 0;
 
   const kpis = [
-    { label: "Novos pedidos", value: open.length, icon: Inbox, tone: "bg-sun/30 text-[#8a5a00]", href: "/empresa/pedidos" },
-    { label: "Em andamento", value: doing.length, icon: Bike, tone: "bg-sky-soft text-sky", href: "/empresa/pedidos" },
-    { label: "Entregues", value: delivered.length, icon: PartyPopper, tone: "bg-mint-soft text-mint", href: "/empresa/pedidos" },
-    { label: "No cardápio", value: active.length, icon: ChefHat, tone: "bg-orange-soft text-orange-dark", href: "/empresa/produtos" },
+    { label: "Novos pedidos", value: open.length, icon: Inbox, hint: open.length > 0 ? "esperando você" : "nada pendente", tone: "bg-sun/30 text-[#8a5a00]", href: "/empresa/pedidos" },
+    { label: "Em andamento", value: doing.length, icon: Bike, hint: "aceitos e em rota", tone: "bg-sky-soft text-sky", href: "/empresa/pedidos" },
+    { label: "Entregues", value: delivered.length, icon: PartyPopper, hint: "no histórico", tone: "bg-mint-soft text-mint", href: "/empresa/pedidos" },
+    { label: "No cardápio", value: active.length, icon: ChefHat, hint: "produtos ativos", tone: "bg-orange-soft text-orange-dark", href: "/empresa/produtos" },
   ];
 
   return (
@@ -91,12 +91,17 @@ export default function VisaoGeralPageClient() {
           <Plus size={20} strokeWidth={3} /> Novo produto</button>
       </div>
 
-      <ul className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {kpis.map((k) => (
           <li key={k.label}>
-            <Link href={k.href} className="animate-pop flex items-center gap-3 rounded-3xl border-2 border-fur-light bg-paper p-4 transition hover:-translate-y-0.5 hover:border-orange">
-              <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${k.tone}`}><k.icon size={24} /></span>
-              <span><span className="block font-display text-3xl font-extrabold leading-none tabular-nums">{k.value}</span><span className="text-xs font-bold text-fur">{k.label}</span></span>
+            <Link href={k.href} className={`group relative block overflow-hidden rounded-3xl p-4 transition hover:-translate-y-1 sm:p-5 ${k.tone}`}>
+              <k.icon size={84} strokeWidth={1.5} className="pointer-events-none absolute -bottom-4 -right-3 opacity-15 transition group-hover:rotate-6 group-hover:scale-110" />
+              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-white/80"><k.icon size={20} /></span>
+              <span className="mt-3 flex items-baseline gap-2">
+                <span className="font-extrabold text-ink">{k.label}</span>
+                <span className="font-display text-2xl font-extrabold leading-none tabular-nums">{k.value}</span>
+              </span>
+              <span className="mt-0.5 block truncate text-xs font-bold text-ink/65">{k.hint}</span>
             </Link>
           </li>
         ))}
