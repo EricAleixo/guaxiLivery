@@ -1,0 +1,5 @@
+target/
+uploads/
+.idea/
+*.md
+.mvn/wrapper/*.Zone.Identifier
