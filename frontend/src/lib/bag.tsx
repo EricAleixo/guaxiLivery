@@ -5,7 +5,7 @@ import { useAuth } from "./auth";
 import type { FeedItem } from "./api";
 
 export interface BagItem {
-  productId: number; name: string; price: number; imageUrl: string | null;
+  productId: string; name: string; price: number; imageUrl: string | null;
   category: FeedItem["product"]["category"]; companyName: string; qty: number;
 }
 
@@ -14,8 +14,8 @@ interface BagCtx {
   count: number;
   total: number;
   add: (i: FeedItem, qty?: number) => void;
-  setQty: (productId: number, qty: number) => void;
-  remove: (productId: number) => void;
+  setQty: (productId: string, qty: number) => void;
+  remove: (productId: string) => void;
   clear: () => void;
 }
 
@@ -30,7 +30,7 @@ export function BagProvider({ children }: { children: React.ReactNode }) {
   // troca de usuário: recarrega a sacola dele (a chave só muda depois da hidratação)
   if (loaded.key !== key) {
     let stored: BagItem[] = [];
-    if (key) { try { stored = JSON.parse(localStorage.getItem(key) ?? "[]"); } catch {} }
+    if (key) { try { stored = (JSON.parse(localStorage.getItem(key) ?? "[]") as BagItem[]).filter((x) => typeof x.productId === "string"); /* ids antigos (numericos) sao descartados */ } catch {} }
     setLoaded({ key, items: stored });
   }
   const items = loaded.items;
@@ -48,9 +48,9 @@ export function BagProvider({ children }: { children: React.ReactNode }) {
     return [...p, { productId: i.product.id, name: i.product.name, price: i.product.price, imageUrl: i.product.imageUrl,
       category: i.product.category, companyName: i.company.tradeName, qty: Math.min(MAX_QTY, qty) }];
   }), [update]);
-  const setQty = useCallback((id: number, qty: number) =>
+  const setQty = useCallback((id: string, qty: number) =>
     update((p) => p.map((x) => x.productId === id ? { ...x, qty: Math.max(1, Math.min(MAX_QTY, qty)) } : x)), [update]);
-  const remove = useCallback((id: number) => update((p) => p.filter((x) => x.productId !== id)), [update]);
+  const remove = useCallback((id: string) => update((p) => p.filter((x) => x.productId !== id)), [update]);
   const clear = useCallback(() => update(() => []), [update]);
 
   const value = useMemo(() => ({

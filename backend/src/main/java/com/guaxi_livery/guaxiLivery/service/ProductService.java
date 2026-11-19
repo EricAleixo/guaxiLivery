@@ -1,5 +1,7 @@
 package com.guaxi_livery.guaxiLivery.service;
 
+import java.util.UUID;
+
 import com.guaxi_livery.guaxiLivery.domain.*;
 import com.guaxi_livery.guaxiLivery.dto.Dtos.*;
 import com.guaxi_livery.guaxiLivery.repository.CompanyRepository;
@@ -38,7 +40,7 @@ public class ProductService {
 				.orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, "Conta sem empresa"));
 	}
 
-	private Product owned(User user, Long id) {
+	private Product owned(User user, UUID id) {
 		return products.findByIdAndCompanyId(id, companyOf(user).getId())
 				.orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Produto não encontrado"));
 	}
@@ -51,8 +53,8 @@ public class ProductService {
 
 	@Transactional(readOnly = true)
 	public List<FeedItemResponse> feed() {
-		Map<Long, Object[]> stats = new HashMap<>();
-		for (Object[] row : reviews.stats()) stats.put((Long) row[0], row);
+		Map<UUID, Object[]> stats = new HashMap<>();
+		for (Object[] row : reviews.stats()) stats.put((UUID) row[0], row);
 		return products.findFeed().stream().map(p -> {
 			Object[] s = stats.get(p.getId());
 			return FeedItemResponse.of(p, s == null ? null : ((Number) s[1]).doubleValue(), s == null ? 0 : (Long) s[2]);
@@ -69,8 +71,8 @@ public class ProductService {
 	}
 
 	@Transactional
-	public ProductResponse update(User user, Long id, ProductRequest req,
-								  List<MultipartFile> media, List<Long> removeMedia) {
+	public ProductResponse update(User user, UUID id, ProductRequest req,
+								  List<MultipartFile> media, List<UUID> removeMedia) {
 		Product p = owned(user, id);
 		apply(p, req);
 		if (removeMedia != null && !removeMedia.isEmpty()) {
@@ -85,14 +87,14 @@ public class ProductService {
 	}
 
 	@Transactional
-	public ProductResponse setAvailable(User user, Long id, boolean available) {
+	public ProductResponse setAvailable(User user, UUID id, boolean available) {
 		Product p = owned(user, id);
 		p.setAvailable(available);
 		return ProductResponse.of(p);
 	}
 
 	@Transactional
-	public void delete(User user, Long id) {
+	public void delete(User user, UUID id) {
 		products.delete(owned(user, id));
 	}
 

@@ -17,7 +17,7 @@ export default function TodosPageClient() {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<ProductCategory | null>(null);
-  const [company, setCompany] = useState<number | null>(null);
+  const [company, setCompany] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -27,7 +27,7 @@ export default function TodosPageClient() {
   // filtros vindos do dashboard: ?categoria=LANCHE&empresa=3
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
-    const c = q.get("categoria"); const e = Number(q.get("empresa"));
+    const c = q.get("categoria"); const e = q.get("empresa");
     /* eslint-disable react-hooks/set-state-in-effect -- lê a URL só no cliente, após a hidratação */
     if (c && c in CATEGORIES) setCategory(c as ProductCategory);
     if (e) setCompany(e);
@@ -36,7 +36,7 @@ export default function TodosPageClient() {
   usePolling(() => { if (user) load(); }, 30000);
 
   const companies = useMemo(() => {
-    const m = new Map<number, FeedItem["company"]>();
+    const m = new Map<string, FeedItem["company"]>();
     items?.forEach((i) => m.set(i.company.id, i.company));
     return [...m.values()];
   }, [items]);

@@ -7,7 +7,7 @@ export default function PerfilPageClient() {
   const { user } = useRequireRole("CLIENTE");
   if (!user) return <Loading />;
   return (
-    <div className="mx-auto max-w-[90rem] space-y-6 px-4 py-8 sm:px-8">
+    <div className="space-y-6">
       <h1 className="text-3xl font-extrabold">Meu perfil</h1>
       <ProfileForm />
     </div>

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { homeFor, useAuth } from "@/lib/auth";
 import { btnCls, ErrorBox, Field, inputCls } from "@/components/ui";
+import { PasswordInput } from "@/components/PasswordInput";
 import { Raccoon } from "@/components/Logo";
 
 export default function LoginPageClient() {
@@ -34,7 +35,7 @@ export default function LoginPageClient() {
         <h1 className="mt-2 text-center text-3xl font-extrabold">Bem-vindo de volta!</h1>
         <form onSubmit={submit} className="mt-6 space-y-4">
           <Field label="E-mail"><input className={inputCls} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" /></Field>
-          <Field label="Senha"><input className={inputCls} type="password" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" /></Field>
+          <Field label="Senha"><PasswordInput required value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
           <ErrorBox message={error} />
           <button className={`${btnCls} w-full`} disabled={busy}>{busy ? "Entrando…" : "Entrar"}</button>
         </form>

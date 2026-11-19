@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ClipboardList, UtensilsCrossed, Plus, Star, UserRound } from "lucide-react";
+import { LayoutDashboard, ClipboardList, UtensilsCrossed, Plus, Star, UserRound, Wallet, Bike, MessageCircle } from "lucide-react";
 import { EmpresaProvider, useEmpresa } from "@/lib/empresa";
 import { useAuth } from "@/lib/auth";
+import { useChat } from "@/lib/chat";
 import { Avatar } from "@/components/Avatar";
 import { ErrorBox } from "@/components/ui";
 
@@ -11,6 +12,9 @@ const LINKS = [
   { href: "/empresa", label: "Visão geral", icon: LayoutDashboard },
   { href: "/empresa/pedidos", label: "Pedidos", icon: ClipboardList },
   { href: "/empresa/produtos", label: "Cardápio", icon: UtensilsCrossed },
+  { href: "/empresa/chats", label: "Chats", icon: MessageCircle },
+  { href: "/empresa/entregadores", label: "Entregadores", icon: Bike },
+  { href: "/empresa/financeiro", label: "Financeiro", icon: Wallet },
   { href: "/empresa/avaliacoes", label: "Avaliações", icon: Star },
   { href: "/empresa/perfil", label: "Perfil", icon: UserRound },
 ];
@@ -18,7 +22,9 @@ const LINKS = [
 function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const { user } = useAuth();
-  const { deliveries, openForm, error } = useEmpresa();
+  const { unread } = useChat();
+  const { deliveries, couriers, openForm, error } = useEmpresa();
+  const applicants = couriers?.filter((l) => l.status === "CANDIDATURA").length ?? 0;
   const pending = deliveries?.filter((d) => d.status === "PENDENTE").length ?? 0;
 
   return (
@@ -45,6 +51,12 @@ function Shell({ children }: { children: React.ReactNode }) {
                   <l.icon size={20} />{l.label}
                   {l.href === "/empresa/pedidos" && pending > 0 && (
                     <span className="ml-auto rounded-full bg-orange px-2 py-0.5 text-xs text-white">{pending}</span>
+                  )}
+                  {l.href === "/empresa/chats" && unread > 0 && (
+                    <span className="ml-auto rounded-full bg-orange px-2 py-0.5 text-xs text-white">{unread}</span>
+                  )}
+                  {l.href === "/empresa/entregadores" && applicants > 0 && (
+                    <span className="ml-auto rounded-full bg-orange px-2 py-0.5 text-xs text-white">{applicants}</span>
                   )}
                 </Link>
               );

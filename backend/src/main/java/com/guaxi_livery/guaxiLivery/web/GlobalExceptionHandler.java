@@ -6,6 +6,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.LinkedHashMap;
@@ -35,5 +36,11 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(MaxUploadSizeExceededException.class)
 	ResponseEntity<Map<String, Object>> tooLarge() {
 		return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(Map.of("message", "Imagem maior que 5MB"));
+	}
+
+	/** Id na URL que nao e um UUID valido (ex.: /deliveries/123/status). */
+	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
+	ResponseEntity<Map<String, Object>> badArgument(MethodArgumentTypeMismatchException e) {
+		return ResponseEntity.badRequest().body(Map.of("message", "Identificador inválido: " + e.getName()));
 	}
 }

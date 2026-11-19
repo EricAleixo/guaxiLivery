@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
+import { ChatProvider } from "@/lib/chat";
 import { BagProvider } from "@/lib/bag";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -19,11 +20,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="pt-BR" className={`${baloo.variable} ${nunito.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          <BagProvider>
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </BagProvider>
+          <ChatProvider>
+            <BagProvider>
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </BagProvider>
+          </ChatProvider>
         </AuthProvider>
       </body>
     </html>

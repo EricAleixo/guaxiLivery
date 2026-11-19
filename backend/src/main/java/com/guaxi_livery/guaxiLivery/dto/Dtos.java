@@ -1,5 +1,7 @@
 package com.guaxi_livery.guaxiLivery.dto;
 
+import java.util.UUID;
+
 import com.guaxi_livery.guaxiLivery.domain.*;
 import jakarta.validation.constraints.*;
 
@@ -37,11 +39,22 @@ public final class Dtos {
 
 	public record AuthResponse(String token, UserResponse user) {}
 
-	public record UserResponse(Long id, String name, String email, Role role, Long companyId, String avatarUrl) {}
+	public record UserResponse(UUID id, String name, String email, Role role, UUID companyId, String avatarUrl) {}
 
-	public record CompanyResponse(Long id, String tradeName, String phone, String address, String description, String logoUrl) {
+	public record CompanyResponse(UUID id, String tradeName, String phone, String address, String description, String logoUrl) {
 		public static CompanyResponse of(Company c) {
 			return new CompanyResponse(c.getId(), c.getTradeName(), c.getPhone(), c.getAddress(), c.getDescription(), upload(c.getLogoFilename()));
+		}
+	}
+
+	/** Dados do entregador visíveis no pedido (sem documentos). */
+	public record CourierBrief(UUID id, String name, String phone, VehicleType vehicleType, String vehiclePlate,
+							   String vehicleModel, String vehicleColor, String avatarUrl) {
+		public static CourierBrief of(Courier c) {
+			String avatar = c.getUser().getAvatarFilename();
+			return new CourierBrief(c.getId(), c.getUser().getName(), c.getUser().getPhone(), c.getVehicleType(),
+					c.getVehiclePlate(), c.getVehicleModel(), c.getVehicleColor(),
+					avatar == null || avatar.isBlank() ? null : "/api/uploads/" + avatar);
 		}
 	}
 
@@ -52,11 +65,11 @@ public final class Dtos {
 			@NotNull @Min(1) @Max(50) Integer quantity,
 			@NotBlank @Size(max = 255) String pickupAddress,
 			@NotBlank @Size(max = 255) String deliveryAddress,
-			Long companyId) {}
+			UUID companyId) {}
 
 	/** Pedido feito a partir de um produto do feed. */
 	public record OrderRequest(
-			@NotNull Long productId,
+			@NotNull UUID productId,
 			@NotNull @Min(1) @Max(50) Integer quantity,
 			@NotBlank @Size(max = 255) String deliveryAddress,
 			@Size(max = 500) String description) {}
@@ -64,7 +77,7 @@ public final class Dtos {
 	public record StatusUpdateRequest(@NotNull DeliveryStatus status) {}
 
 	public record DeliveryResponse(
-			Long id,
+			UUID id,
 			String foodName,
 			String description,
 			Integer quantity,
@@ -75,8 +88,9 @@ public final class Dtos {
 			String clientName,
 			CompanyResponse company,
 			Instant createdAt,
-			Long productId,
-			boolean reviewed) {
+			UUID productId,
+			boolean reviewed,
+			CourierBrief courier) {
 		public static DeliveryResponse of(Delivery d) {
 			return of(d, false);
 		}
@@ -86,7 +100,8 @@ public final class Dtos {
 					d.getPickupAddress(), d.getDeliveryAddress(), d.getImageFilename().isBlank() ? null : "/api/uploads/" + d.getImageFilename(),
 					d.getStatus(), d.getClient().getName(),
 					d.getCompany() == null ? null : CompanyResponse.of(d.getCompany()), d.getCreatedAt(),
-					d.getProduct() == null ? null : d.getProduct().getId(), reviewed);
+					d.getProduct() == null ? null : d.getProduct().getId(), reviewed,
+					d.getCourier() == null ? null : CourierBrief.of(d.getCourier()));
 		}
 	}
 
@@ -106,12 +121,12 @@ public final class Dtos {
 	}
 
 	public record ReviewRequest(
-			@NotNull Long deliveryId,
+			@NotNull UUID deliveryId,
 			@NotNull @Min(1) @Max(5) Integer rating,
 			@Size(max = 500) String comment) {}
 
-	public record ReviewResponse(Long id, int rating, String comment, String clientName, String clientAvatarUrl,
-								 Long productId, String productName, Instant createdAt) {
+	public record ReviewResponse(UUID id, int rating, String comment, String clientName, String clientAvatarUrl,
+								 UUID productId, String productName, Instant createdAt) {
 		public static ReviewResponse of(Review r) {
 			return new ReviewResponse(r.getId(), r.getRating(), r.getComment(), r.getClient().getName(),
 					upload(r.getClient().getAvatarFilename()), r.getProduct().getId(), r.getProduct().getName(), r.getCreatedAt());
@@ -133,13 +148,13 @@ public final class Dtos {
 
 	public record AvailabilityRequest(@NotNull Boolean available) {}
 
-	public record MediaResponse(Long id, String url, MediaType type) {
+	public record MediaResponse(UUID id, String url, MediaType type) {
 		public static MediaResponse of(ProductMedia m) {
 			return new MediaResponse(m.getId(), upload(m.getFilename()), m.getType());
 		}
 	}
 
-	public record ProductResponse(Long id, String name, String description, BigDecimal price,
+	public record ProductResponse(UUID id, String name, String description, BigDecimal price,
 								  ProductCategory category, String imageUrl, java.util.List<MediaResponse> media,
 								  boolean available, Instant createdAt) {
 		public static ProductResponse of(Product p) {

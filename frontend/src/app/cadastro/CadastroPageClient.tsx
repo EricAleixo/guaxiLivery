@@ -1,12 +1,13 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Store, UtensilsCrossed, UserRound, Phone } from "lucide-react";
-import { api, ApiError, type Role } from "@/lib/api";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, Bike, Check, Store, UtensilsCrossed, UserRound, Phone } from "lucide-react";
+import { api, ApiError, VEHICLES, type Company, type Role, type VehicleType } from "@/lib/api";
 import { homeFor, useAuth } from "@/lib/auth";
 import { formatCnpj } from "@/lib/format";
 import { Raccoon } from "@/components/Logo";
+import { PasswordInput } from "@/components/PasswordInput";
 import { passwordStrength } from "@/lib/password";
 import { btnCls, ErrorBox, Field, inputCls, PasswordStrength } from "@/components/ui";
 
@@ -16,11 +17,23 @@ const COMPANY_STEPS = [
   { title: "Contato", icon: Phone, keys: ["phone", "address", "description"] },
 ];
 
+const COURIER_STEPS = [
+  { title: "Sua conta", icon: UserRound, keys: ["name", "email", "password", "confirmPassword"] },
+  { title: "Veículo", icon: Bike, keys: ["phone", "cpf", "vehicleType", "vehiclePlate", "vehicleModel", "vehicleColor", "cnh"] },
+  { title: "Empresas", icon: Store, keys: [] as string[] },
+];
+
 export default function CadastroPageClient() {
   const { signIn } = useAuth();
   const router = useRouter();
-  const [role, setRole] = useState<Role>(() =>
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tipo") === "empresa" ? "EMPRESA" : "CLIENTE");
+  const [role, setRole] = useState<Role>(() => {
+    if (typeof window === "undefined") return "CLIENTE";
+    const t = new URLSearchParams(window.location.search).get("tipo");
+    return t === "empresa" ? "EMPRESA" : t === "entregador" ? "ENTREGADOR" : "CLIENTE";
+  });
+  const [companies, setCompanies] = useState<Company[] | null>(null);
+  const [picked, setPicked] = useState<string[]>([]);
+  useEffect(() => { api.companies().then(setCompanies).catch(() => setCompanies([])); }, []);
   const [f, setF] = useState<Record<string, string>>({});
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -29,17 +42,25 @@ export default function CadastroPageClient() {
   const stepRef = useRef<HTMLDivElement>(null);
 
   const isCompany = role === "EMPRESA";
-  const last = isCompany ? COMPANY_STEPS.length - 1 : 0;
+  const isCourier = role === "ENTREGADOR";
+  const steps = isCompany ? COMPANY_STEPS : isCourier ? COURIER_STEPS : null;
+  const last = steps ? steps.length - 1 : 0;
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setF((p) => ({ ...p, [k]: k === "cnpj" ? formatCnpj(e.target.value) : e.target.value }));
+    setF((p) => ({ ...p, [k]: k === "cnpj" ? formatCnpj(e.target.value) : k === "cpf" || k === "cnh" ? e.target.value.replace(/\D/g, "").slice(0, 11) : e.target.value }));
   const v = (k: string) => f[k] ?? "";
+  const motorized = VEHICLES[(v("vehicleType") || "MOTO") as VehicleType].motorized;
 
   function stepValid() {
     const els = stepRef.current?.querySelectorAll<HTMLInputElement>("input, textarea") ?? [];
     for (const el of els) if (!el.reportValidity()) return false;
     if (step === 0 && !passwordStrength(v("password")).ok) { setFields({ password: "Use 8+ caracteres com letra, número e caractere especial" }); return false; }
     if (step === 0 && v("password") !== v("confirmPassword")) { setFields({ confirmPassword: "As senhas não coincidem" }); return false; }
-    if (step === 1 && v("cnpj").length !== 14) { setFields({ cnpj: "CNPJ deve ter 14 dígitos" }); return false; }
+    if (isCourier && step === 1 && v("cpf").length !== 11) { setFields({ cpf: "CPF deve ter 11 dígitos" }); return false; }
+    if (isCourier && step === 1 && motorized && (!v("vehiclePlate").trim() || v("cnh").length !== 11)) {
+      setFields({ ...(v("vehiclePlate").trim() ? {} : { vehiclePlate: "Informe a placa" }), ...(v("cnh").length === 11 ? {} : { cnh: "CNH deve ter 11 dígitos" }) });
+      return false;
+    }
+    if (isCompany && step === 1 && v("cnpj").length !== 14) { setFields({ cnpj: "CNPJ deve ter 14 dígitos" }); return false; }
     return true;
   }
 
@@ -54,35 +75,51 @@ export default function CadastroPageClient() {
       delete data.confirmPassword;
       const r = isCompany
         ? await api.registerCompany(data)
-        : await api.registerClient({ name: f.name, email: f.email, password: f.password });
+        : isCourier
+          ? await api.registerCourier({
+              name: f.name, email: f.email, password: f.password, phone: f.phone, cpf: f.cpf,
+              vehicleType: (f.vehicleType || "MOTO") as VehicleType,
+              vehiclePlate: f.vehiclePlate?.trim() || undefined, vehicleModel: f.vehicleModel?.trim() || undefined,
+              vehicleColor: f.vehicleColor?.trim() || undefined, cnh: f.cnh || undefined, companyIds: picked,
+            })
+          : await api.registerClient({ name: f.name, email: f.email, password: f.password });
       signIn(r);
       router.push(homeFor(r.user.role));
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message); setFields(err.fields ?? {});
-        const bad = COMPANY_STEPS.findIndex((s) => s.keys.some((k) => err.fields?.[k]));
-        if (isCompany && bad >= 0) setStep(bad);
-        else if (isCompany && err.status === 409) setStep(0);
+        const bad = (steps ?? []).findIndex((s) => s.keys.some((k) => err.fields?.[k]));
+        if (steps && bad >= 0) setStep(bad);
+        else if (steps && err.status === 409) setStep(0);
       } else setError("Erro inesperado.");
     } finally { setBusy(false); }
   }
 
-  const tab = (r: Role, label: string, icon: React.ReactNode) => (
-    <button type="button" onClick={() => { setRole(r); setStep(0); setError(null); setFields({}); }}
-      className={`flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 font-extrabold transition ${role === r ? "bg-ink text-cream" : "text-ink hover:bg-orange-soft"}`}>{icon}{label}</button>
+  const tab = (r: Role, label: string, hint: string, icon: React.ReactNode) => (
+    <button type="button" role="tab" aria-selected={role === r}
+      onClick={() => { setRole(r); setStep(0); setError(null); setFields({}); }}
+      className={`flex flex-1 flex-col items-center gap-1 rounded-2xl border-2 px-2 py-3 text-center transition ${role === r
+        ? "border-orange bg-orange-soft text-orange-dark shadow-[0_3px_0_var(--color-orange)]"
+        : "border-fur-light bg-paper text-ink hover:-translate-y-0.5 hover:border-orange"}`}>
+      <span className={`grid h-10 w-10 place-items-center rounded-full ${role === r ? "bg-orange text-white" : "bg-fur-light text-fur"}`}>{icon}</span>
+      <span className="text-sm font-extrabold leading-tight">{label}</span>
+      <span className="hidden text-xs font-semibold text-fur sm:block">{hint}</span>
+    </button>
   );
 
   return (
     <div className="mx-auto max-w-lg px-4 py-10">
       <div className="animate-pop rounded-3xl border-2 border-fur-light bg-paper p-6">
         <h1 className="flex items-center gap-2 text-3xl font-extrabold">Crie sua conta <Raccoon className="h-9 w-9" /></h1>
-        <div className="mt-4 flex gap-1 rounded-full bg-fur-light/60 p-1">
-          {tab("CLIENTE", "Quero pedir", <UtensilsCrossed size={18} />)}{tab("EMPRESA", "Sou empresa", <Store size={18} />)}
+        <div role="tablist" aria-label="Tipo de conta" className="mt-4 flex gap-2">
+          {tab("CLIENTE", "Quero pedir", "Peça comida", <UtensilsCrossed size={20} />)}
+          {tab("ENTREGADOR", "Sou motoboy", "Faça entregas", <Bike size={20} />)}
+          {tab("EMPRESA", "Sou empresa", "Venda e entregue", <Store size={20} />)}
         </div>
 
-        {isCompany && (
+        {steps && (
           <ol className="mt-6 flex items-center" aria-label="Etapas do cadastro">
-            {COMPANY_STEPS.map((s, i) => (
+            {steps.map((s, i) => (
               <li key={s.title} className="flex flex-1 items-center last:flex-none">
                 <div className="flex flex-col items-center gap-1">
                   <span className={`grid h-10 w-10 place-items-center rounded-full transition ${i < step ? "bg-mint text-white" : i === step ? "bg-orange text-white" : "bg-fur-light text-fur"}`}>
@@ -90,7 +127,7 @@ export default function CadastroPageClient() {
                   </span>
                   <span className={`text-xs font-bold ${i === step ? "text-ink" : "text-fur"}`}>{s.title}</span>
                 </div>
-                {i < COMPANY_STEPS.length - 1 && <span className={`mx-2 mb-5 h-1 flex-1 rounded ${i < step ? "bg-mint" : "bg-fur-light"}`} />}
+                {i < steps.length - 1 && <span className={`mx-2 mb-5 h-1 flex-1 rounded ${i < step ? "bg-mint" : "bg-fur-light"}`} />}
               </li>
             ))}
           </ol>
@@ -105,10 +142,10 @@ export default function CadastroPageClient() {
                 <Field label="E-mail" error={fields.email}>
                   <input className={inputCls} type="email" required value={v("email")} onChange={set("email")} autoComplete="email" /></Field>
                 <Field label="Senha" error={fields.password}>
-                  <input className={inputCls} type="password" required maxLength={72} value={v("password")} onChange={set("password")} autoComplete="new-password" />
+                  <PasswordInput required value={v("password")} onChange={set("password")} autoComplete="new-password" />
                   <PasswordStrength password={v("password")} /></Field>
                 <Field label="Confirmar senha" error={fields.confirmPassword}>
-                  <input className={inputCls} type="password" required maxLength={72} value={v("confirmPassword")} onChange={set("confirmPassword")} autoComplete="new-password" /></Field>
+                  <PasswordInput required value={v("confirmPassword")} onChange={set("confirmPassword")} autoComplete="new-password" /></Field>
               </>
             )}
             {isCompany && step === 1 && (
@@ -125,6 +162,39 @@ export default function CadastroPageClient() {
                 <Field label="Endereço" error={fields.address}><input className={inputCls} maxLength={255} value={v("address")} onChange={set("address")} /></Field>
                 <Field label="Descrição" error={fields.description}><textarea className={inputCls} rows={3} maxLength={500} value={v("description")} onChange={set("description")} /></Field>
               </>
+            )}
+            {isCourier && step === 1 && (
+              <>
+                <Field label="Telefone / WhatsApp" error={fields.phone}><input className={inputCls} required maxLength={30} value={v("phone")} onChange={set("phone")} autoComplete="tel" /></Field>
+                <Field label="CPF (11 dígitos)" error={fields.cpf}><input className={inputCls} required inputMode="numeric" value={v("cpf")} onChange={set("cpf")} /></Field>
+                <Field label="Veículo" error={fields.vehicleType}>
+                  <select className={inputCls} value={v("vehicleType") || "MOTO"} onChange={(e) => setF((p) => ({ ...p, vehicleType: e.target.value }))}>
+                    {(Object.keys(VEHICLES) as VehicleType[]).map((k) => <option key={k} value={k}>{VEHICLES[k].emoji} {VEHICLES[k].label}</option>)}
+                  </select></Field>
+                {motorized && (
+                  <>
+                    <Field label="Placa" error={fields.vehiclePlate}><input className={inputCls} maxLength={10} value={v("vehiclePlate")} onChange={set("vehiclePlate")} /></Field>
+                    <Field label="CNH (11 dígitos)" error={fields.cnh}><input className={inputCls} inputMode="numeric" value={v("cnh")} onChange={set("cnh")} /></Field>
+                  </>
+                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Modelo (opcional)" error={fields.vehicleModel}><input className={inputCls} maxLength={60} value={v("vehicleModel")} onChange={set("vehicleModel")} /></Field>
+                  <Field label="Cor (opcional)" error={fields.vehicleColor}><input className={inputCls} maxLength={40} value={v("vehicleColor")} onChange={set("vehicleColor")} /></Field>
+                </div>
+              </>
+            )}
+            {isCourier && step === 2 && (
+              <fieldset className="space-y-2">
+                <legend className="mb-1 text-sm font-bold">Para quais empresas você quer trabalhar? <span className="font-normal text-fur">(a empresa precisa aprovar)</span></legend>
+                {!companies ? <p className="text-sm text-fur">Carregando empresas…</p> : companies.length === 0 ? <p className="text-sm text-fur">Nenhuma empresa ainda. Você poderá se candidatar depois.</p> :
+                  companies.map((c) => (
+                    <label key={c.id} className="flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-fur-light bg-paper px-4 py-2.5 font-bold has-[:checked]:border-orange has-[:checked]:bg-orange-soft">
+                      <input type="checkbox" className="h-4 w-4 accent-orange" checked={picked.includes(c.id)}
+                        onChange={() => setPicked((p) => (p.includes(c.id) ? p.filter((x) => x !== c.id) : [...p, c.id]))} />
+                      {c.tradeName}
+                    </label>
+                  ))}
+              </fieldset>
             )}
           </div>
           <ErrorBox message={error} />

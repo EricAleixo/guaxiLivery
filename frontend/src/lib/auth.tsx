@@ -36,7 +36,10 @@ export function useAuth() {
   return c;
 }
 
-export const homeFor = (role: Role) => (role === "EMPRESA" ? "/empresa" : "/cliente");
+export const homeFor = (role: Role) => (role === "EMPRESA" ? "/empresa" : role === "ENTREGADOR" ? "/entregador" : "/cliente");
+
+/** Entregador também é cliente: pode usar as páginas de cliente. */
+const allowed = (user: User, role: Role) => user.role === role || (role === "CLIENTE" && user.role === "ENTREGADOR");
 
 /** Garante que o usuário está logado com o papel certo; redireciona caso contrário. */
 export function useRequireRole(role: Role) {
@@ -45,7 +48,7 @@ export function useRequireRole(role: Role) {
   useEffect(() => {
     if (!ready) return;
     if (!user) router.replace("/login");
-    else if (user.role !== role) router.replace(homeFor(user.role));
+    else if (!allowed(user, role)) router.replace(homeFor(user.role));
   }, [ready, user, role, router]);
-  return { user: user?.role === role ? user : null, ready };
+  return { user: user && allowed(user, role) ? user : null, ready };
 }

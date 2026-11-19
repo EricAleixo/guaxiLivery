@@ -1,5 +1,7 @@
 package com.guaxi_livery.guaxiLivery.service;
 
+import java.util.UUID;
+
 import com.guaxi_livery.guaxiLivery.domain.*;
 import com.guaxi_livery.guaxiLivery.dto.Dtos.*;
 import com.guaxi_livery.guaxiLivery.repository.CompanyRepository;
@@ -52,7 +54,7 @@ public class ReviewService {
 	}
 
 	@Transactional(readOnly = true)
-	public ProductReviewsResponse forProduct(Long productId) {
+	public ProductReviewsResponse forProduct(UUID productId) {
 		List<ReviewResponse> list = reviews.findByProduct(productId).stream().map(ReviewResponse::of).toList();
 		Double avg = list.isEmpty() ? null : list.stream().mapToInt(ReviewResponse::rating).average().orElse(0);
 		return new ProductReviewsResponse(avg, list.size(), list);

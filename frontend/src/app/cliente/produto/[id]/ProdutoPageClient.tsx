@@ -31,7 +31,7 @@ export default function ProdutoPageClient() {
   }, [user]);
 
   useEffect(() => {
-    if (user) api.productReviews(Number(id)).then(setReviews).catch(() => {});
+    if (user) api.productReviews(id).then(setReviews).catch(() => {});
   }, [user, id]);
 
   const item = items?.find((i) => String(i.product.id) === id);

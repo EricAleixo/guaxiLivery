@@ -1,5 +1,7 @@
 package com.guaxi_livery.guaxiLivery.web;
 
+import java.util.UUID;
+
 import com.guaxi_livery.guaxiLivery.dto.Dtos.*;
 import com.guaxi_livery.guaxiLivery.security.AppUserDetails;
 import com.guaxi_livery.guaxiLivery.service.ReviewService;
@@ -33,7 +35,7 @@ public class ReviewController {
 
 	/** Avaliações de um produto (qualquer usuário logado). */
 	@GetMapping("/api/products/{id}/reviews")
-	public ProductReviewsResponse forProduct(@PathVariable Long id) {
+	public ProductReviewsResponse forProduct(@PathVariable UUID id) {
 		return service.forProduct(id);
 	}
 }

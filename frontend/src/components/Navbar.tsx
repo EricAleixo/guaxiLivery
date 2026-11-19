@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Clapperboard, LayoutDashboard, LogIn, LogOut, ShoppingBag, UserPlus } from "lucide-react";
+import { Bike, Clapperboard, LayoutDashboard, LogIn, LogOut, ShoppingBag, UserPlus } from "lucide-react";
 import { useAuth, homeFor } from "@/lib/auth";
 import { useBag } from "@/lib/bag";
 import { Logo } from "./Logo";
@@ -18,7 +18,7 @@ export function Navbar() {
         <div className="flex items-center gap-0.5 text-sm font-bold sm:gap-2">
           {!ready ? null : user ? (
             <>
-              <Link href={user.role === "EMPRESA" ? "/empresa/perfil" : "/cliente/perfil"} aria-label="Meu perfil"
+              <Link href={user.role === "EMPRESA" ? "/empresa/perfil" : user.role === "ENTREGADOR" ? "/entregador/perfil" : "/cliente/perfil"} aria-label="Meu perfil"
                 className="flex items-center gap-2 rounded-full py-1 pl-1 pr-1 text-fur hover:bg-orange-soft sm:pr-3">
                 <Avatar url={user.avatarUrl} name={user.name} className="h-8 w-8" />
                 <span className="hidden sm:inline">{user.name.split(" ")[0]}</span>
@@ -27,6 +27,9 @@ export function Navbar() {
                 <Link href="/empresa" aria-label="Painel" className="flex items-center gap-1.5 rounded-full p-2 hover:bg-orange-soft sm:px-3"><LayoutDashboard size={20} /> <span className="hidden sm:inline">Painel</span></Link>
               ) : (
                 <>
+                  {user.role === "ENTREGADOR" && (
+                    <Link href="/entregador" aria-label="Minhas entregas" className="flex items-center gap-1.5 rounded-full p-2 hover:bg-orange-soft sm:px-3"><Bike size={20} /> <span className="hidden sm:inline">Entregas</span></Link>
+                  )}
                   <Link href="/cliente/feed" aria-label="Feed de comidas"
                     className="flex items-center gap-1.5 rounded-full p-2 hover:bg-orange-soft sm:px-3">
                     <Clapperboard size={20} /> <span className="hidden sm:inline">Feed</span>

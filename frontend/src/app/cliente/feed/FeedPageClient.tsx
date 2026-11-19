@@ -17,7 +17,7 @@ export default function FeedPageClient() {
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState<ProductCategory | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [activeId, setActiveId] = useState<number | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
 
   const load = useCallback(() => {
@@ -35,7 +35,7 @@ export default function FeedPageClient() {
     if (!root) return;
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) {
-        if (e.isIntersecting) setActiveId(Number((e.target as HTMLElement).dataset.post));
+        if (e.isIntersecting) setActiveId((e.target as HTMLElement).dataset.post ?? null);
       }
     }, { root, threshold: 0.6 });
     root.querySelectorAll("[data-post]").forEach((el) => io.observe(el));

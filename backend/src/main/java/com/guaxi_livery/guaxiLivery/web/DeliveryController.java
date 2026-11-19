@@ -1,5 +1,7 @@
 package com.guaxi_livery.guaxiLivery.web;
 
+import java.util.UUID;
+
 import com.guaxi_livery.guaxiLivery.dto.Dtos.*;
 import com.guaxi_livery.guaxiLivery.security.AppUserDetails;
 import com.guaxi_livery.guaxiLivery.service.DeliveryService;
@@ -49,7 +51,7 @@ public class DeliveryController {
 	}
 
 	@PatchMapping("/{id}/status")
-	public DeliveryResponse updateStatus(@AuthenticationPrincipal AppUserDetails me, @PathVariable Long id,
+	public DeliveryResponse updateStatus(@AuthenticationPrincipal AppUserDetails me, @PathVariable UUID id,
 										 @Valid @RequestBody StatusUpdateRequest body) {
 		return service.updateStatus(me.user(), id, body.status());
 	}

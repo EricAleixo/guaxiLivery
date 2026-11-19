@@ -23,9 +23,11 @@ public class AuthService {
 	private final PasswordEncoder encoder;
 	private final AuthenticationManager authManager;
 	private final JwtService jwt;
+	private final CourierService courierService;
 
 	public AuthService(UserRepository users, CompanyRepository companies, PasswordEncoder encoder,
-					   AuthenticationManager authManager, JwtService jwt) {
+					   AuthenticationManager authManager, JwtService jwt, CourierService courierService) {
+		this.courierService = courierService;
 		this.users = users;
 		this.companies = companies;
 		this.encoder = encoder;
@@ -54,6 +56,11 @@ public class AuthService {
 		company.setDescription(req.description());
 		companies.save(company);
 		return response(user);
+	}
+
+	@Transactional
+	public AuthResponse registerCourier(com.guaxi_livery.guaxiLivery.dto.CourierDtos.CourierRegisterRequest req) {
+		return response(courierService.register(req));
 	}
 
 	@Transactional(readOnly = true)

@@ -32,7 +32,7 @@ export default function ClientePageClient() {
   }, [user]);
 
   const again = useMemo(() => {
-    const seen = new Set<number>(); const out: FeedItem[] = [];
+    const seen = new Set<string>(); const out: FeedItem[] = [];
     for (const o of [...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt))) {
       if (o.status === "CANCELADO" || o.productId == null || seen.has(o.productId)) continue;
       seen.add(o.productId);
@@ -49,7 +49,7 @@ export default function ClientePageClient() {
   }, [items]);
 
   const companies = useMemo(() => {
-    const m = new Map<number, { company: FeedItem["company"]; n: number }>();
+    const m = new Map<string, { company: FeedItem["company"]; n: number }>();
     items?.forEach((i) => m.set(i.company.id, { company: i.company, n: (m.get(i.company.id)?.n ?? 0) + 1 }));
     return [...m.values()];
   }, [items]);

@@ -30,6 +30,12 @@ public class AuthController {
 		return auth.registerCompany(req);
 	}
 
+	@PostMapping("/register/courier")
+	@ResponseStatus(HttpStatus.CREATED)
+	public AuthResponse registerCourier(@Valid @RequestBody com.guaxi_livery.guaxiLivery.dto.CourierDtos.CourierRegisterRequest req) {
+		return auth.registerCourier(req);
+	}
+
 	@PostMapping("/login")
 	public AuthResponse login(@Valid @RequestBody LoginRequest req) {
 		return auth.login(req);

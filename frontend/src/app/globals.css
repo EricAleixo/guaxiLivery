@@ -98,3 +98,27 @@ h1, h2, h3, .font-display { font-family: var(--font-baloo), system-ui, sans-seri
 @media (prefers-reduced-motion: reduce) {
   .animate-ride, .animate-pop, .animate-hop, .animate-shadow, .rc-snack, .rc-bite, .rc-head, .rc-ear, .rc-crumb, .animate-floaty { animation: none; }
 }
+
+/* Guaxinim perdido (404): olha de um lado pro outro, com interrogações flutuando */
+@keyframes look {
+  0%, 15% { transform: translateX(0); }
+  30%, 45% { transform: translateX(-3px); }
+  60%, 75% { transform: translateX(3px); }
+  90%, 100% { transform: translateX(0); }
+}
+@keyframes tilt {
+  0%, 15%, 100% { transform: rotate(0); }
+  30%, 45% { transform: rotate(-7deg); }
+  60%, 75% { transform: rotate(7deg); }
+}
+@keyframes qmark {
+  0% { opacity: 0; transform: translateY(6px) scale(.7); }
+  30%, 70% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-14px) scale(1.1); }
+}
+.rc-look { animation: look 4s ease-in-out infinite; }
+.rc-tilt { transform-box: fill-box; transform-origin: 50% 90%; animation: tilt 4s ease-in-out infinite; }
+.rc-q { transform-box: fill-box; transform-origin: center; animation: qmark 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .rc-look, .rc-tilt, .rc-q { animation: none; }
+}

@@ -32,4 +32,8 @@ export const CATEGORIES: Record<ProductCategory, { label: string; emoji: string;
   OUTROS: { label: "Outros", emoji: "🍽️", tint: "bg-fur-light" },
 };
 
-export const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+export const brl = (n: number | null | undefined) =>
+  n == null ? "—" : n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+/** Codigo curto de um UUID para exibir na tela (ex.: #a1b2c3d4). */
+export const shortId = (id: string) => id.slice(0, 8);

@@ -12,12 +12,12 @@ const avg = (l: Review[]) => l.reduce((s, r) => s + r.rating, 0) / l.length;
 export default function AvaliacoesPageClient() {
   const [reviews, setReviews] = useState<Review[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [product, setProduct] = useState<number | null>(null);
+  const [product, setProduct] = useState<string | null>(null);
 
   useEffect(() => { api.companyReviews().then(setReviews).catch((e) => setError(e.message)); }, []);
 
   const byProduct = useMemo(() => {
-    const m = new Map<number, { name: string; list: Review[] }>();
+    const m = new Map<string, { name: string; list: Review[] }>();
     reviews?.forEach((r) => { const e = m.get(r.productId) ?? { name: r.productName, list: [] }; e.list.push(r); m.set(r.productId, e); });
     return [...m.entries()].map(([id, v]) => ({ id, ...v }));
   }, [reviews]);

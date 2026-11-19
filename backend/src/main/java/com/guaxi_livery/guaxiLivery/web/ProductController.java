@@ -1,5 +1,7 @@
 package com.guaxi_livery.guaxiLivery.web;
 
+import java.util.UUID;
+
 import com.guaxi_livery.guaxiLivery.dto.Dtos.*;
 import com.guaxi_livery.guaxiLivery.security.AppUserDetails;
 import com.guaxi_livery.guaxiLivery.service.ProductService;
@@ -43,22 +45,22 @@ public class ProductController {
 	}
 
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ProductResponse update(@AuthenticationPrincipal AppUserDetails me, @PathVariable Long id,
+	public ProductResponse update(@AuthenticationPrincipal AppUserDetails me, @PathVariable UUID id,
 								  @Valid @ModelAttribute ProductRequest request,
 								  @RequestPart(value = "media", required = false) List<MultipartFile> media,
-								  @RequestParam(value = "removeMedia", required = false) List<Long> removeMedia) {
+								  @RequestParam(value = "removeMedia", required = false) List<UUID> removeMedia) {
 		return service.update(me.user(), id, request, media, removeMedia);
 	}
 
 	@PatchMapping("/{id}/availability")
-	public ProductResponse availability(@AuthenticationPrincipal AppUserDetails me, @PathVariable Long id,
+	public ProductResponse availability(@AuthenticationPrincipal AppUserDetails me, @PathVariable UUID id,
 										@Valid @RequestBody AvailabilityRequest body) {
 		return service.setAvailable(me.user(), id, body.available());
 	}
 
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void delete(@AuthenticationPrincipal AppUserDetails me, @PathVariable Long id) {
+	public void delete(@AuthenticationPrincipal AppUserDetails me, @PathVariable UUID id) {
 		service.delete(me.user(), id);
 	}
 }

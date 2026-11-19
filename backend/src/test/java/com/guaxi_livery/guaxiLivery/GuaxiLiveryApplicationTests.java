@@ -57,6 +57,9 @@ class GuaxiLiveryApplicationTests {
 				.header("Authorization", "Bearer " + clientToken))
 				.andExpect(status().isCreated()).andExpect(jsonPath("$.status").value("PENDENTE")).andReturn();
 
+		String deliveryId = Pattern.compile("\"id\":\"([0-9a-f-]{36})\"")
+				.matcher(created.getResponse().getContentAsString()).results().findFirst().get().group(1);
+
 		// sem imagem de tipo valido
 		mvc.perform(multipart("/api/deliveries")
 				.file(new MockMultipartFile("image", "x.exe", "application/octet-stream", new byte[] {1}))
@@ -71,10 +74,10 @@ class GuaxiLiveryApplicationTests {
 
 		mvc.perform(get("/api/deliveries/available").header("Authorization", "Bearer " + companyToken))
 				.andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1));
-		mvc.perform(patch("/api/deliveries/1/status").contentType(MediaType.APPLICATION_JSON)
+		mvc.perform(patch("/api/deliveries/" + deliveryId + "/status").contentType(MediaType.APPLICATION_JSON)
 				.content("{\"status\":\"ACEITO\"}").header("Authorization", "Bearer " + companyToken))
 				.andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ACEITO"));
-		mvc.perform(patch("/api/deliveries/1/status").contentType(MediaType.APPLICATION_JSON)
+		mvc.perform(patch("/api/deliveries/" + deliveryId + "/status").contentType(MediaType.APPLICATION_JSON)
 				.content("{\"status\":\"ENTREGUE\"}").header("Authorization", "Bearer " + companyToken))
 				.andExpect(status().isConflict());
 	}

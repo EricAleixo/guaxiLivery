@@ -1,5 +1,7 @@
 package com.guaxi_livery.guaxiLivery.domain;
 
+import java.util.UUID;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,8 +18,8 @@ import java.time.Instant;
 public class Review {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
 	@OneToOne(optional = false, fetch = FetchType.LAZY)
 	@JoinColumn(name = "delivery_id", nullable = false, unique = true)

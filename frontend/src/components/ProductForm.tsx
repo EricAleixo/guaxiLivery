@@ -29,7 +29,7 @@ export function ProductForm({ product, onClose, onSaved }: {
 }) {
   const [category, setCategory] = useState<ProductCategory>(product?.category ?? "LANCHE");
   const [existing, setExisting] = useState<Media[]>(product ? mediaOf(product) : []);
-  const [removed, setRemoved] = useState<number[]>([]);
+  const [removed, setRemoved] = useState<string[]>([]);
   const [files, setFiles] = useState<{ file: File; url: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [fields, setFields] = useState<Record<string, string>>({});

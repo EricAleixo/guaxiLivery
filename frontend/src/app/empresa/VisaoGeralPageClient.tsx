@@ -7,7 +7,7 @@ import { useEmpresa } from "@/lib/empresa";
 import { Raccoon } from "@/components/Logo";
 import { Chip } from "@/components/ui";
 import { OrderActions } from "@/components/OrderActions";
-import { brl, CATEGORIES, STATUS, timeAgo } from "@/lib/format";
+import { brl, CATEGORIES, STATUS, shortId, timeAgo } from "@/lib/format";
 import type { DeliveryStatus, ProductCategory } from "@/lib/api";
 
 const DAY_LABEL = new Intl.DateTimeFormat("pt-BR", { weekday: "short" });
@@ -142,7 +142,7 @@ export default function VisaoGeralPageClient() {
                 <li key={x.id} className="flex flex-wrap items-center gap-3 py-3">
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-extrabold">{x.quantity}× {x.foodName}</p>
-                    <p className="truncate text-xs text-fur">#{x.id} · {x.clientName} · {timeAgo(x.createdAt)}</p>
+                    <p className="truncate text-xs text-fur">#{shortId(x.id)} · {x.clientName} · {timeAgo(x.createdAt)}</p>
                   </div>
                   <Chip status={x.status} />
                   <div className="w-full sm:w-auto sm:min-w-64"><OrderActions d={x} /></div>

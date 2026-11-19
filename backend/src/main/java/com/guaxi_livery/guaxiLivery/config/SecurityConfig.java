@@ -35,6 +35,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(a -> a
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.requestMatchers("/api/auth/**").permitAll()
+						.requestMatchers("/ws/**").permitAll() // autenticado pelo token no handshake
 						.requestMatchers(HttpMethod.GET, "/api/companies", "/api/uploads/**").permitAll()
 						.requestMatchers("/api/deliveries/mine", "/api/deliveries").hasRole("CLIENTE")
 						.requestMatchers("/api/deliveries/available", "/api/deliveries/*/status").hasRole("EMPRESA")
@@ -44,6 +45,9 @@ public class SecurityConfig {
 						.requestMatchers("/api/reviews").hasRole("CLIENTE")
 						.requestMatchers("/api/deliveries/order").hasRole("CLIENTE")
 						.requestMatchers("/api/products/**").hasRole("EMPRESA")
+						.requestMatchers("/api/finance/**").hasRole("EMPRESA")
+						.requestMatchers("/api/company/**").hasRole("EMPRESA")
+						.requestMatchers("/api/courier/**").hasRole("ENTREGADOR")
 						.anyRequest().authenticated())
 				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();

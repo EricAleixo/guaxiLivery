@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { Home, MapPin, Store } from "lucide-react";
+import { Bike, Home, MapPin, Store } from "lucide-react";
 import type { Delivery, DeliveryStatus } from "@/lib/api";
 import { imageSrc } from "@/lib/api";
 import { passwordStrength } from "@/lib/password";
-import { STATUS, STEPS, timeAgo } from "@/lib/format";
+import { STATUS, STEPS, shortId, timeAgo } from "@/lib/format";
 
 export const inputCls =
   "w-full rounded-2xl border-2 border-fur-light bg-paper px-4 py-3 outline-none transition focus:border-orange focus:ring-4 focus:ring-orange-soft";
@@ -60,7 +60,7 @@ export function DeliveryCard({ d, children, showClient }: { d: Delivery; childre
         <div className="flex items-start justify-between gap-2">
           <div>
             <h3 className="text-xl font-extrabold leading-tight">{d.quantity}× {d.foodName}</h3>
-            <p className="text-xs text-fur">#{d.id} · {timeAgo(d.createdAt)}{showClient && ` · ${d.clientName}`}</p>
+            <p className="text-xs text-fur">#{shortId(d.id)} · {timeAgo(d.createdAt)}{showClient && ` · ${d.clientName}`}</p>
           </div>
           <Chip status={d.status} />
         </div>
@@ -69,6 +69,7 @@ export function DeliveryCard({ d, children, showClient }: { d: Delivery; childre
           <div><dt className="inline-flex items-center gap-1 font-bold"><MapPin size={15} className="text-orange" />Retirar: </dt><dd className="inline">{d.pickupAddress}</dd></div>
           <div><dt className="inline-flex items-center gap-1 font-bold"><Home size={15} className="text-orange" />Entregar: </dt><dd className="inline">{d.deliveryAddress}</dd></div>
           <div><dt className="inline-flex items-center gap-1 font-bold"><Store size={15} className="text-orange" />Empresa: </dt><dd className="inline">{d.company?.tradeName ?? "Qualquer empresa disponível"}</dd></div>
+          {d.courier && <div><dt className="inline-flex items-center gap-1 font-bold"><Bike size={15} className="text-orange" />Motoboy: </dt><dd className="inline">{d.courier.name}{d.courier.vehiclePlate && ` · ${d.courier.vehiclePlate}`}</dd></div>}
         </dl>
         <Tracker status={d.status} />
         {children}

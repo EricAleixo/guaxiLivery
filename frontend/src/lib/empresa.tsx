@@ -1,7 +1,7 @@
 "use client";
 import { Loading } from "@/components/Loading";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { api, ApiError, type Delivery, type DeliveryStatus, type Product } from "@/lib/api";
+import { api, ApiError, type CompanyLink, type Delivery, type DeliveryStatus, type Product } from "@/lib/api";
 import { useRequireRole } from "@/lib/auth";
 import { usePolling } from "@/components/ui";
 import { ProductForm } from "@/components/ProductForm";
@@ -9,10 +9,13 @@ import { ProductForm } from "@/components/ProductForm";
 interface Ctx {
   deliveries: Delivery[] | null;
   products: Product[] | null;
+  couriers: CompanyLink[] | null;
+  reloadCouriers: () => void;
+  assign: (d: Delivery, courierId: string | null) => Promise<void>;
   error: string | null;
   clearError: () => void;
-  busyId: number | null;
-  move: (d: Delivery, to: DeliveryStatus) => Promise<void>;
+  busyId: string | null;
+  move: (d: Delivery, to: DeliveryStatus, courierId?: string | null) => Promise<void>;
   toggle: (p: Product) => Promise<void>;
   remove: (p: Product) => Promise<void>;
   openForm: (p?: Product) => void;
@@ -31,24 +34,42 @@ export function EmpresaProvider({ children }: { children: React.ReactNode }) {
   const { user } = useRequireRole("EMPRESA");
   const [deliveries, setDeliveries] = useState<Delivery[] | null>(null);
   const [products, setProducts] = useState<Product[] | null>(null);
+  const [couriers, setCouriers] = useState<CompanyLink[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<number | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [editing, setEditing] = useState<Product | null | undefined>(undefined); // undefined = fechado, null = novo
 
   const load = useCallback(() => {
     api.availableDeliveries().then((l) => { setDeliveries(l); setError(null); }).catch((e) => setError(msg(e)));
   }, []);
+  const reloadCouriers = useCallback(() => {
+    api.companyCouriers().then(setCouriers).catch((e) => setError(msg(e)));
+  }, []);
   useEffect(() => {
     if (!user) return;
     load();
+    reloadCouriers();
     api.myProducts().then(setProducts).catch((e) => setError(msg(e)));
-  }, [user, load]);
-  usePolling(() => { if (user && busyId === null) load(); });
+  }, [user, load, reloadCouriers]);
+  usePolling(() => { if (user && busyId === null) { load(); reloadCouriers(); } });
 
-  const move = useCallback(async (d: Delivery, to: DeliveryStatus) => {
+  const move = useCallback(async (d: Delivery, to: DeliveryStatus, courierId?: string | null) => {
     setBusyId(d.id); setError(null);
     try {
-      const upd = await api.updateStatus(d.id, to);
+      let upd = await api.updateStatus(d.id, to);
+      if (courierId != null) {
+        try { upd = await api.assignCourier(d.id, courierId); }
+        catch (e) { setError(`Pedido aceito, mas não foi possível associar o motoboy: ${msg(e)}`); }
+      }
+      setDeliveries((l) => l?.map((x) => (x.id === upd.id ? upd : x)) ?? l);
+    } catch (e) { setError(msg(e)); load(); }
+    finally { setBusyId(null); }
+  }, [load]);
+
+  const assign = useCallback(async (d: Delivery, courierId: string | null) => {
+    setBusyId(d.id); setError(null);
+    try {
+      const upd = await api.assignCourier(d.id, courierId);
       setDeliveries((l) => l?.map((x) => (x.id === upd.id ? upd : x)) ?? l);
     } catch (e) { setError(msg(e)); load(); }
     finally { setBusyId(null); }
@@ -75,8 +96,8 @@ export function EmpresaProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(() => ({
-    deliveries, products, error, clearError: () => setError(null), busyId, move, toggle, remove, openForm,
-  }), [deliveries, products, error, busyId, move, toggle, remove, openForm]);
+    deliveries, products, couriers, reloadCouriers, assign, error, clearError: () => setError(null), busyId, move, toggle, remove, openForm,
+  }), [deliveries, products, couriers, reloadCouriers, assign, error, busyId, move, toggle, remove, openForm]);
 
   if (!user) return <Loading />;
   return (

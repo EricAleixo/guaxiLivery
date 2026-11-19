@@ -8,7 +8,6 @@ import { Loading } from "@/components/Loading";
 import { useRequireRole } from "@/lib/auth";
 import { useBag } from "@/lib/bag";
 import { brl, CATEGORIES } from "@/lib/format";
-import { ClienteTabs } from "@/components/ClienteTabs";
 import { Raccoon } from "@/components/Logo";
 import { btnCls, ErrorBox, Field, inputCls } from "@/components/ui";
 
@@ -43,10 +42,9 @@ export default function SacolaPageClient() {
   const byCompany = Object.entries(Object.groupBy(bag.items, (i) => i.companyName));
 
   return (
-    <div className="mx-auto max-w-[90rem] space-y-6 px-4 py-8 sm:px-8">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-extrabold">Sacola</h1>
-        <ClienteTabs />
       </div>
 
       {bag.items.length === 0 ? (

@@ -17,6 +17,26 @@ services:
       timeout: 5s
       retries: 5
 
+  # Converte ids numericos -> UUID (com backup) antes do backend subir. Idempotente.
+  # Manual: docker compose run --rm migrate [check]
+  migrate:
+    image: postgres:17
+    container_name: guaxelivery-migrate
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      BACKUP_DIR: /backups
+    entrypoint: ["sh", "/migrate/migrate-uuid.sh"]
+    volumes:
+      - ./backend/db:/migrate:ro
+      - ./backups:/backups
+
   backend:
     build: ./backend
     container_name: guaxelivery-backend
@@ -24,6 +44,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
       DB_USER: ${POSTGRES_USER}

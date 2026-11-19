@@ -1,5 +1,7 @@
 package com.guaxi_livery.guaxiLivery.service;
 
+import java.util.UUID;
+
 import com.guaxi_livery.guaxiLivery.domain.*;
 import com.guaxi_livery.guaxiLivery.dto.Dtos.*;
 import com.guaxi_livery.guaxiLivery.repository.CompanyRepository;
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +80,12 @@ public class DeliveryService {
 		d.setPickupAddress(company.getAddress() == null || company.getAddress().isBlank()
 				? company.getTradeName() : company.getAddress());
 		d.setDeliveryAddress(req.deliveryAddress());
+		// Congela o valor do pedido: alterações futuras no preço do produto não mudam o histórico financeiro.
+		d.setUnitPrice(p.getPrice());
+		d.setItemsSubtotal(p.getPrice().multiply(BigDecimal.valueOf(req.quantity())));
+		d.setDeliveryFee(BigDecimal.ZERO);
+		d.setDiscount(BigDecimal.ZERO);
+		d.setPaymentFee(BigDecimal.ZERO);
 		d.setImageFilename(p.getMedia().stream().filter(m -> m.getType() == MediaType.IMAGE)
 				.map(ProductMedia::getFilename).findFirst()
 				.orElse(p.getImageFilename() == null ? "" : p.getImageFilename()));
@@ -84,7 +94,7 @@ public class DeliveryService {
 
 	@Transactional(readOnly = true)
 	public List<DeliveryResponse> mine(User client) {
-		Set<Long> reviewed = new HashSet<>(reviews.reviewedDeliveryIds(client.getId()));
+		Set<UUID> reviewed = new HashSet<>(reviews.reviewedDeliveryIds(client.getId()));
 		return deliveries.findByClient(client.getId()).stream()
 				.map(d -> DeliveryResponse.of(d, reviewed.contains(d.getId()))).toList();
 	}
@@ -97,7 +107,7 @@ public class DeliveryService {
 	}
 
 	@Transactional
-	public DeliveryResponse updateStatus(User companyUser, Long id, DeliveryStatus next) {
+	public DeliveryResponse updateStatus(User companyUser, UUID id, DeliveryStatus next) {
 		Company company = companyOf(companyUser);
 		Delivery d = deliveries.findById(id)
 				.orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Pedido não encontrado"));
@@ -111,6 +121,8 @@ public class DeliveryService {
 			d.setCompany(company); // a empresa que aceita o pedido aberto assume ele
 		}
 		d.setStatus(next);
+		if (next == DeliveryStatus.ENTREGUE) d.setDeliveredAt(Instant.now());
+		if (next == DeliveryStatus.CANCELADO) d.setCanceledAt(Instant.now());
 		return DeliveryResponse.of(d);
 	}
 

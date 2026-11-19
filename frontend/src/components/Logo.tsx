@@ -66,3 +66,29 @@ export function RaccoonSnacking({ className = "h-40 w-40" }: { className?: strin
     </svg>
   );
 }
+
+/** Guaxinim perdido: olha pros lados e inclina a cabeça (animação só com CSS, ver .rc-look em globals.css). */
+export function RaccoonLost({ className = "h-40 w-40" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 120 120" className={className} role="img" aria-label="Guaxinim perdido">
+      <ellipse cx="60" cy="112" rx="30" ry="4" fill="#231c18" opacity=".15" />
+      <text x="92" y="22" fontSize="20" fontWeight="800" fill="#ff6a1a" className="rc-q">?</text>
+      <text x="14" y="30" fontSize="16" fontWeight="800" fill="#ffc53d" className="rc-q" style={{ animationDelay: ".8s" }}>?</text>
+      <text x="100" y="52" fontSize="12" fontWeight="800" fill="#2f80ed" className="rc-q" style={{ animationDelay: "1.6s" }}>?</text>
+      <ellipse cx="60" cy="98" rx="26" ry="15" fill="#8c847e" />
+      <ellipse cx="60" cy="101" rx="14" ry="10" fill="#f5efe8" />
+      <g className="rc-tilt">
+        <circle cx="30" cy="34" r="11" fill="#5b534e" className="rc-ear" />
+        <circle cx="90" cy="34" r="11" fill="#5b534e" className="rc-ear" style={{ animationDelay: ".4s" }} />
+        <circle cx="30" cy="34" r="5" fill="#f5efe8" /><circle cx="90" cy="34" r="5" fill="#f5efe8" />
+        <ellipse cx="60" cy="56" rx="36" ry="30" fill="#8c847e" />
+        <ellipse cx="60" cy="66" rx="20" ry="15" fill="#f5efe8" />
+        <ellipse cx="43" cy="52" rx="12" ry="9" fill="#231c18" /><ellipse cx="77" cy="52" rx="12" ry="9" fill="#231c18" />
+        <circle cx="43" cy="52" r="4.5" fill="#fff" /><circle cx="77" cy="52" r="4.5" fill="#fff" />
+        <g className="rc-look"><circle cx="43" cy="52.5" r="2.2" fill="#231c18" /><circle cx="77" cy="52.5" r="2.2" fill="#231c18" /></g>
+        <ellipse cx="60" cy="64" rx="5" ry="3.5" fill="#231c18" />
+        <path d="M54 71q6 -3 12 0" stroke="#231c18" strokeWidth="2" fill="none" strokeLinecap="round" />
+      </g>
+    </svg>
+  );
+}
