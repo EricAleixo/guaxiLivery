@@ -93,7 +93,7 @@ export function ChatsPage() {
       </header>
       <ErrorBox message={error} />
       {!list && !error ? <Loading label="Buscando conversas…" /> : (
-        <div className={`grid gap-4 lg:h-[calc(100dvh-13rem)] lg:min-h-[28rem] lg:grid-cols-[23rem_1fr] ${shown ? "h-[calc(100dvh-11rem)] min-h-[26rem]" : ""}`}>
+        <div className={`grid gap-4 lg:h-[calc(100dvh-13rem)] lg:min-h-[28rem] lg:grid-cols-[23rem_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]`}>
           <div className={`flex min-h-0 flex-col gap-3 ${shown ? "hidden lg:flex" : ""}`}>
             {list && list.length > 0 && (
               <div role="tablist" className="flex gap-2">
@@ -117,7 +117,8 @@ export function ChatsPage() {
           </div>
           {shown ? (
             <ChatPanel key={key(shown)} otherId={shown.otherId} channel={shown.channel}
-              onBack={() => { setOpen(null); load(); }} className="h-full" />
+              onBack={() => { setOpen(null); load(); }}
+              className="max-lg:fixed max-lg:inset-0 max-lg:z-50 max-lg:h-dvh max-lg:rounded-none max-lg:ring-0 lg:h-full" />
           ) : (
             <div className="hidden place-items-center rounded-3xl bg-paper text-center ring-2 ring-fur-light lg:grid">
               <div><MessageCircle size={44} className="mx-auto text-orange" /><p className="mt-2 text-lg font-extrabold">Suas conversas</p><p className="font-semibold text-fur">Escolha uma conversa ao lado.</p></div>
