@@ -79,7 +79,7 @@ export function ChatPanel({ otherId, channel, onBack, className = "" }: {
   }
 
   return (
-    <section className={`relative flex min-h-0 flex-col overflow-hidden rounded-3xl bg-paper shadow-sm ring-2 ring-fur-light ${className}`} aria-label="Conversa">
+    <section className={`relative flex min-h-0 min-w-0 max-w-full flex-col overflow-hidden rounded-3xl bg-paper shadow-sm ring-2 ring-fur-light ${className}`} aria-label="Conversa">
       <header className="flex items-center gap-2 border-b-2 border-fur-light bg-paper p-2.5 sm:gap-3 sm:p-3">
         {onBack && (
           <button onClick={onBack} aria-label="Voltar para as conversas" className="grid h-10 w-10 shrink-0 place-items-center rounded-full hover:bg-orange-soft lg:hidden"><ArrowLeft size={22} /></button>
@@ -94,7 +94,7 @@ export function ChatPanel({ otherId, channel, onBack, className = "" }: {
         {!connected && <span title="Reconectando…" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-sun/30 text-[#8a5a00]"><WifiOff size={16} /></span>}
       </header>
 
-      <div ref={scroller} onScroll={onScroll} className="min-h-0 flex-1 overflow-y-auto bg-cream/70 px-3 py-4 sm:px-5" role="log" aria-live="polite">
+      <div ref={scroller} onScroll={onScroll} className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-cream/70 px-3 py-4 sm:px-5" role="log" aria-live="polite">
         {!msgs && !error && <Loading label="Abrindo conversa…" />}
         {msgs?.length === 0 && (
           <div className="grid h-full place-items-center text-center">
@@ -110,11 +110,11 @@ export function ChatPanel({ otherId, channel, onBack, className = "" }: {
           return (
             <div key={m.id}>
               {(!prev || prev.deliveryId !== m.deliveryId) && (
-                <p className="mb-1 mt-4 text-center"><span className="rounded-full bg-orange-soft px-3 py-1 text-[11px] font-extrabold text-orange-dark">Pedido: {m.quantity}× {m.foodName}</span></p>
+                <p className="mb-1 mt-4 text-center"><span className="inline-block max-w-full truncate rounded-full bg-orange-soft px-3 py-1 text-[11px] font-extrabold text-orange-dark">Pedido: {m.quantity}× {m.foodName}</span></p>
               )}
               {newDay && <p className="sticky top-0 z-[1] my-3 text-center"><span className="rounded-full bg-paper px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-fur shadow-sm">{day(m.createdAt)}</span></p>}
-              <div className={`flex ${mine ? "justify-end" : "justify-start"} ${joinsPrev ? "mt-0.5" : "mt-2"}`}>
-                <div className={`max-w-[85%] whitespace-pre-wrap break-words rounded-3xl px-3.5 py-2 text-[15px] font-semibold leading-snug sm:max-w-[75%]
+              <div className={`flex min-w-0 ${mine ? "justify-end" : "justify-start"} ${joinsPrev ? "mt-0.5" : "mt-2"}`}>
+                <div className={`min-w-0 max-w-[85%] whitespace-pre-wrap [overflow-wrap:anywhere] rounded-3xl px-3.5 py-2 text-[15px] font-semibold leading-snug sm:max-w-[75%]
                   ${mine ? "bg-orange text-white" : "bg-paper text-ink shadow-sm"}
                   ${joinsPrev ? (mine ? "rounded-tr-md" : "rounded-tl-md") : ""} ${joinsNext ? (mine ? "rounded-br-md" : "rounded-bl-md") : ""}`}>
                   {m.content}
